@@ -55,12 +55,12 @@ class Mailer
 	public function __construct($host, $port, $username, $password, $method = self::SMTP)
 	{
 		$this->credential = [
-			'host' => $host,
-			'port' => $port,
+			'host'     => $host,
+			'port'     => $port,
 			'username' => $username,
 			'password' => $password,
-			'method' => $method,
-			'useTLS' => false,
+			'method'   => $method,
+			'useTLS'   => false,
 		];
 
 		if ('tls://' == substr($host, 0, 6)) {
@@ -127,15 +127,15 @@ class Mailer
 	public function addAddress($email, $name = null, $type = self::TO)
 	{
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			$this->writeLog('"'.$email.'" is not a valid email address.');
+			$this->writeLog('"' . $email . '" is not a valid email address.');
 
 			return false;
 		}
 
 		$this->recipients[] = [
 			'email' => strtolower($email),
-			'name' => $name,
-			'type' => $type,
+			'name'  => $name,
+			'type'  => $type,
 		];
 
 		return true;
@@ -152,14 +152,14 @@ class Mailer
 	public function setReplyTo($email, $name = null)
 	{
 		if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
-			$this->writeLog('"'.$email.'" is not a valid email address.');
+			$this->writeLog('"' . $email . '" is not a valid email address.');
 
 			return false;
 		}
 
 		$this->replyTo = [
 			'email' => $email,
-			'name' => $name,
+			'name'  => $name,
 		];
 
 		return true;
@@ -176,7 +176,7 @@ class Mailer
 	public function addAttachment($file, $name = null)
 	{
 		if (!file_exists($file)) {
-			$this->writeLog('"'.$file.'" is not accessible.');
+			$this->writeLog('"' . $file . '" is not accessible.');
 
 			return false;
 		}
@@ -220,7 +220,7 @@ class Mailer
 		$from = strtolower($from);
 
 		if (!filter_var($from, FILTER_VALIDATE_EMAIL)) {
-			$this->writeLog('"'.$from.'" is not a valid email address.');
+			$this->writeLog('"' . $from . '" is not a valid email address.');
 
 			return false;
 		}
@@ -235,7 +235,7 @@ class Mailer
 			return false;
 		}
 
-		$this->execute('MAIL FROM: <'.$from.'>');
+		$this->execute('MAIL FROM: <' . $from . '>');
 
 		if (250 != $this->statusCode) {
 			$this->terminate('MAIL command failed.');
@@ -244,7 +244,7 @@ class Mailer
 		}
 
 		foreach ($this->recipients as $recipient) {
-			$this->execute('RCPT TO: <'.$recipient['email'].'>'.(($this->deliveryStatus) ? ' NOTIFY=SUCCESS,FAILURE,DELAY' : ''));
+			$this->execute('RCPT TO: <' . $recipient['email'] . '>' . (($this->deliveryStatus) ? ' NOTIFY=SUCCESS,FAILURE,DELAY' : ''));
 
 			if (250 != $this->statusCode) {
 				$this->terminate('RECPT TO command failed.');
@@ -266,47 +266,47 @@ class Mailer
 		$body = str_replace("\r", '', trim($body));
 
 		$contents = [];
-		$boundary1 = md5(microtime().mt_rand(1000, 9999));
-		$boundary2 = md5(microtime().mt_rand(1000, 9999));
+		$boundary1 = md5(microtime() . mt_rand(1000, 9999));
+		$boundary2 = md5(microtime() . mt_rand(1000, 9999));
 
 		$headers = [
-			'Message-ID: <'.time().'.'.md5(microtime()).'@'.substr($from, strrpos($from, '@') + 1).'>',
-			'From: '.(($fromName) ? '"'.$this->encode($fromName).'" ' : '').'<'.$from.'>',
+			'Message-ID: <' . time() . '.' . md5(microtime()) . '@' . substr($from, strrpos($from, '@') + 1) . '>',
+			'From: ' . (($fromName) ? '"' . $this->encode($fromName) . '" ' : '') . '<' . $from . '>',
 		];
 
 		if (!empty($this->headers)) {
 			foreach ($this->headers as $key => $value) {
-				$headers[] = $key.': '.$value;
+				$headers[] = $key . ': ' . $value;
 			}
 		}
 
 		if (!empty($this->replyTo)) {
-			$headers[] = 'Reply-To: '.(($this->replyTo['name']) ? '"'.$this->encode($this->replyTo['name']).'" ' : '').'<'.$this->replyTo['email'].'>';
+			$headers[] = 'Reply-To: ' . (($this->replyTo['name']) ? '"' . $this->encode($this->replyTo['name']) . '" ' : '') . '<' . $this->replyTo['email'] . '>';
 		}
 
 		$toList = [];
 		$ccList = [];
 		foreach ($this->recipients as $recipient) {
 			if (self::TO == $recipient['type']) {
-				$toList[] = (($recipient['name']) ? '"'.$this->encode($recipient['name']).'" ' : '').'<'.$recipient['email'].'>';
+				$toList[] = (($recipient['name']) ? '"' . $this->encode($recipient['name']) . '" ' : '') . '<' . $recipient['email'] . '>';
 			}
 
 			if (self::CC == $recipient['type']) {
-				$ccList[] = (($recipient['name']) ? '"'.$this->encode($recipient['name']).'" ' : '').'<'.$recipient['email'].'>';
+				$ccList[] = (($recipient['name']) ? '"' . $this->encode($recipient['name']) . '" ' : '') . '<' . $recipient['email'] . '>';
 			}
 		}
 
-		$headers[] = 'To: '.implode(', ', $toList);
-		$headers[] = 'CC: '.implode(', ', $ccList);
-		$headers[] = 'Subject: '.$this->encode($subject);
-		$headers[] = 'Date: '.date('r');
+		$headers[] = 'To: ' . implode(', ', $toList);
+		$headers[] = 'CC: ' . implode(', ', $ccList);
+		$headers[] = 'Subject: ' . $this->encode($subject);
+		$headers[] = 'Date: ' . date('r');
 		$headers[] = 'Importance: Normal';
 		$headers[] = 'MIME-Version: 1.0';
-		$headers[] = 'Return-Path: <'.$from.'>';
+		$headers[] = 'Return-Path: <' . $from . '>';
 
 		if ($this->readReceipt) {
-			$headers[] = 'Disposition-Notification-To: '.(($fromName) ? '"'.$this->encode($fromName).'" ' : '').'<'.$from.'>';
-			$headers[] = 'Return-Receipt-To: '.(($fromName) ? '"'.$this->encode($fromName).'" ' : '').'<'.$from.'>';
+			$headers[] = 'Disposition-Notification-To: ' . (($fromName) ? '"' . $this->encode($fromName) . '" ' : '') . '<' . $from . '>';
+			$headers[] = 'Return-Receipt-To: ' . (($fromName) ? '"' . $this->encode($fromName) . '" ' : '') . '<' . $from . '>';
 		}
 
 		if (self::TEXT == $mode) {
@@ -315,8 +315,8 @@ class Mailer
 				$headers[] = 'Content-Transfer-Encoding: 7bit';
 			} else {
 				$headers[] = 'Content-Type: multipart/mixed;';
-				$headers[] = '	boundary="'.$boundary1.'"';
-				$headers[] = '--'.$boundary1;
+				$headers[] = '	boundary="' . $boundary1 . '"';
+				$headers[] = '--' . $boundary1;
 				$headers[] = 'Content-Type: text/plain; charset="utf-8"';
 				$headers[] = 'Content-Transfer-Encoding: 7bit';
 			}
@@ -324,37 +324,37 @@ class Mailer
 		} else {
 			if (!empty($this->attachments)) {
 				$headers[] = 'Content-Type: multipart/mixed;';
-				$headers[] = '	boundary="'.$boundary1.'"';
+				$headers[] = '	boundary="' . $boundary1 . '"';
 			} else {
 				$headers[] = 'Content-Type: multipart/alternative;';
-				$headers[] = '	boundary="'.$boundary2.'"';
+				$headers[] = '	boundary="' . $boundary2 . '"';
 			}
 
 			if (!empty($this->attachments)) {
-				$contents[] = '--'.$boundary1.self::EOL.'Content-Type: multipart/alternative; boundary="'.$boundary2.'"'.self::EOL;
+				$contents[] = '--' . $boundary1 . self::EOL . 'Content-Type: multipart/alternative; boundary="' . $boundary2 . '"' . self::EOL;
 			}
 
-			$contents[] = '--'.$boundary2;
+			$contents[] = '--' . $boundary2;
 			$contents[] = 'Content-Type: text/plain; charset="UTF-8"';
-			$contents[] = 'Content-Transfer-Encoding: quoted-printable'.self::EOL;
+			$contents[] = 'Content-Transfer-Encoding: quoted-printable' . self::EOL;
 			$contents[] = preg_replace('/\n\./', "\n..", quoted_printable_encode(($textBody) ? $textBody : strip_tags($body)));
-			$contents[] = '--'.$boundary2;
+			$contents[] = '--' . $boundary2;
 			$contents[] = 'Content-Type: text/html; charset="UTF-8"';
-			$contents[] = 'Content-Transfer-Encoding: quoted-printable'.self::EOL;
+			$contents[] = 'Content-Transfer-Encoding: quoted-printable' . self::EOL;
 			$contents[] = preg_replace('/\n\./', "\n..", quoted_printable_encode($body));
-			$contents[] = '--'.$boundary2.'--';
+			$contents[] = '--' . $boundary2 . '--';
 		}
 
 		if (!empty($this->attachments)) {
 			foreach ($this->attachments as $attachment) {
-				$contents[] = self::EOL.'--'.$boundary1;
-				$contents[] = 'Content-Type: '.$attachment['type'].'; name="'.$attachment['name'].'"';
+				$contents[] = self::EOL . '--' . $boundary1;
+				$contents[] = 'Content-Type: ' . $attachment['type'] . '; name="' . $attachment['name'] . '"';
 				$contents[] = 'Content-Transfer-Encoding: base64';
-				$contents[] = 'Content-Disposition: attachment; filename="'.$attachment['name'].'"'.self::EOL;
+				$contents[] = 'Content-Disposition: attachment; filename="' . $attachment['name'] . '"' . self::EOL;
 
 				$fp = fopen($attachment['path'], 'rb');
 				if (!$fp) {
-					$this->terminate('Error opening file "'.$attachment['path'].'".');
+					$this->terminate('Error opening file "' . $attachment['path'] . '".');
 
 					return false;
 				}
@@ -362,10 +362,10 @@ class Mailer
 				$contents[] = chunk_split(base64_encode(fread($fp, filesize($attachment['path']))));
 				fclose($fp);
 			}
-			$contents[] = '--'.$boundary1.'--';
+			$contents[] = '--' . $boundary1 . '--';
 		}
 
-		$this->execute(implode(self::EOL, $headers).self::EOL.self::EOL.implode(self::EOL, $contents).self::EOL.'.');
+		$this->execute(implode(self::EOL, $headers) . self::EOL . self::EOL . implode(self::EOL, $contents) . self::EOL . '.');
 
 		if (250 != $this->statusCode) {
 			$this->terminate('DATA command failed.');
@@ -380,10 +380,12 @@ class Mailer
 
 	/**
 	 * Write log.
+	 *
+	 * @param mixed $s
 	 */
 	protected function writeLog($s)
 	{
-		$this->logs[] = date('Y-m-d H:i:s')."\t".$s;
+		$this->logs[] = date('Y-m-d H:i:s') . "\t" . $s;
 	}
 
 	/**
@@ -395,17 +397,17 @@ class Mailer
 	{
 		$context = stream_context_create([
 			'ssl' => [
-				'verify_peer' => false,
+				'verify_peer'      => false,
 				'verify_peer_name' => false,
 			],
 		]);
 
-		$this->writeLog('Connecting to "'.$this->credential['host'].':'.$this->credential['port'].'".');
+		$this->writeLog('Connecting to "' . $this->credential['host'] . ':' . $this->credential['port'] . '".');
 
-		$this->connection = @stream_socket_client($this->credential['host'].':'.$this->credential['port'], $errNo, $errStr, 30, STREAM_CLIENT_CONNECT, $context);
+		$this->connection = @stream_socket_client($this->credential['host'] . ':' . $this->credential['port'], $errNo, $errStr, 30, STREAM_CLIENT_CONNECT, $context);
 
 		if (!$this->connection) {
-			$this->writeLog('Connection failed: '.$errStr);
+			$this->writeLog('Connection failed: ' . $errStr);
 
 			return false;
 		}
@@ -422,7 +424,7 @@ class Mailer
 		}
 
 		// Greet the server
-		$this->execute($this->hello.' 127.0.0.1');
+		$this->execute($this->hello . ' 127.0.0.1');
 
 		if (250 != $this->statusCode) {
 			$this->terminate('Server not responding to greeting.');
@@ -446,7 +448,7 @@ class Mailer
 			}
 
 			// Send greeting again
-			$this->execute($this->hello.' 127.0.0.1');
+			$this->execute($this->hello . ' 127.0.0.1');
 
 			if (250 != $this->statusCode) {
 				$this->terminate('Server not responding to greeting.');
@@ -478,7 +480,7 @@ class Mailer
 				break;
 
 			case self::XOAUTH2:
-				$this->execute('AUTH XOAUTH2 '.base64_encode('user='.$this->credential['username']."\1".'auth=Bearer '.$this->credential['password']."\1\1"));
+				$this->execute('AUTH XOAUTH2 ' . base64_encode('user=' . $this->credential['username'] . "\1" . 'auth=Bearer ' . $this->credential['password'] . "\1\1"));
 				break;
 
 			default:
@@ -506,7 +508,7 @@ class Mailer
 	private function encode($text)
 	{
 		if (strlen($text) != mb_strlen($text, 'utf-8')) {
-			return '=?UTF-8?B?'.base64_encode($text).'?=';
+			return '=?UTF-8?B?' . base64_encode($text) . '?=';
 		}
 
 		return $text;
@@ -529,7 +531,7 @@ class Mailer
 				return 'image/jpg';
 
 			case 'png': case 'gif': case 'bmp': case 'tiff':
-				return 'image/'.$ext;
+				return 'image/' . $ext;
 
 			case 'css':
 				return 'text/css';
@@ -574,7 +576,7 @@ class Mailer
 				return 'video/quicktime';
 
 			case 'zip': case 'gz': case 'rar': case 'rtf': case 'pdf': case 'json': case 'xml':
-				return 'application/'.$ext;
+				return 'application/' . $ext;
 
 			case 'tar':
 				return 'application/x-tar';
@@ -583,7 +585,7 @@ class Mailer
 				return 'application/x-shockwave-flash';
 
 			default:
-				return 'unknown/'.$ext;
+				return 'unknown/' . $ext;
 		}
 	}
 
@@ -594,8 +596,8 @@ class Mailer
 	 */
 	private function execute($cmd)
 	{
-		@fputs($this->connection, $cmd.self::EOL);
-		$this->writeLog('# '.$cmd);
+		@fwrite($this->connection, $cmd . self::EOL);
+		$this->writeLog('# ' . $cmd);
 		$this->getResponse();
 	}
 

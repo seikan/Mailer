@@ -63,7 +63,7 @@ class Mailer
 			'useTLS'   => false,
 		];
 
-		if ('tls://' == substr($host, 0, 6)) {
+		if (substr($host, 0, 6) == 'tls://') {
 			$this->credential['useTLS'] = true;
 			$this->credential['host'] = substr($host, 6);
 		}
@@ -112,7 +112,7 @@ class Mailer
 	 */
 	public function setHello($hello)
 	{
-		$this->hello = ('HELO' == strtoupper($hello)) ? 'HELO' : 'EHLO';
+		$this->hello = (strtoupper($hello) == 'HELO') ? 'HELO' : 'EHLO';
 	}
 
 	/**
@@ -237,7 +237,7 @@ class Mailer
 
 		$this->execute('MAIL FROM: <' . $from . '>');
 
-		if (250 != $this->statusCode) {
+		if ($this->statusCode != 250) {
 			$this->terminate('MAIL command failed.');
 
 			return false;
@@ -246,7 +246,7 @@ class Mailer
 		foreach ($this->recipients as $recipient) {
 			$this->execute('RCPT TO: <' . $recipient['email'] . '>' . (($this->deliveryStatus) ? ' NOTIFY=SUCCESS,FAILURE,DELAY' : ''));
 
-			if (250 != $this->statusCode) {
+			if ($this->statusCode != 250) {
 				$this->terminate('RECPT TO command failed.');
 
 				return false;
@@ -255,7 +255,7 @@ class Mailer
 
 		$this->execute('DATA');
 
-		if (354 != $this->statusCode) {
+		if ($this->statusCode != 354) {
 			$this->terminate('DATA command failed.');
 
 			return false;
@@ -287,11 +287,11 @@ class Mailer
 		$toList = [];
 		$ccList = [];
 		foreach ($this->recipients as $recipient) {
-			if (self::TO == $recipient['type']) {
+			if ($recipient['type'] == self::TO) {
 				$toList[] = (($recipient['name']) ? '"' . $this->encode($recipient['name']) . '" ' : '') . '<' . $recipient['email'] . '>';
 			}
 
-			if (self::CC == $recipient['type']) {
+			if ($recipient['type'] == self::CC) {
 				$ccList[] = (($recipient['name']) ? '"' . $this->encode($recipient['name']) . '" ' : '') . '<' . $recipient['email'] . '>';
 			}
 		}
@@ -309,7 +309,7 @@ class Mailer
 			$headers[] = 'Return-Receipt-To: ' . (($fromName) ? '"' . $this->encode($fromName) . '" ' : '') . '<' . $from . '>';
 		}
 
-		if (self::TEXT == $mode) {
+		if ($mode == self::TEXT) {
 			if (empty($this->attachments)) {
 				$headers[] = 'Content-Type: text/plain; charset="utf-8"';
 				$headers[] = 'Content-Transfer-Encoding: 7bit';
@@ -367,7 +367,7 @@ class Mailer
 
 		$this->execute(implode(self::EOL, $headers) . self::EOL . self::EOL . implode(self::EOL, $contents) . self::EOL . '.');
 
-		if (250 != $this->statusCode) {
+		if ($this->statusCode != 250) {
 			$this->terminate('DATA command failed.');
 
 			return false;
@@ -417,7 +417,7 @@ class Mailer
 		// Get server banner
 		$this->getResponse();
 
-		if (220 != $this->statusCode) {
+		if ($this->statusCode != 220) {
 			$this->writeLog('Remote server not responding.');
 
 			return false;
@@ -426,7 +426,7 @@ class Mailer
 		// Greet the server
 		$this->execute($this->hello . ' 127.0.0.1');
 
-		if (250 != $this->statusCode) {
+		if ($this->statusCode != 250) {
 			$this->terminate('Server not responding to greeting.');
 
 			return false;
@@ -435,7 +435,7 @@ class Mailer
 		if ($this->credential['useTLS']) {
 			$this->execute('STARTTLS');
 
-			if (220 != $this->statusCode) {
+			if ($this->statusCode != 220) {
 				$this->terminate('STARTTLS command failed.');
 
 				return false;
@@ -450,7 +450,7 @@ class Mailer
 			// Send greeting again
 			$this->execute($this->hello . ' 127.0.0.1');
 
-			if (250 != $this->statusCode) {
+			if ($this->statusCode != 250) {
 				$this->terminate('Server not responding to greeting.');
 
 				return false;
@@ -461,7 +461,7 @@ class Mailer
 			case self::SMTP:
 				$this->execute('AUTH LOGIN');
 
-				if (334 != $this->statusCode) {
+				if ($this->statusCode != 334) {
 					$this->terminate('AUTH LOGIN not accepted.');
 
 					return false;
@@ -469,7 +469,7 @@ class Mailer
 
 				$this->execute(base64_encode($this->credential['username']));
 
-				if (334 != $this->statusCode) {
+				if ($this->statusCode != 334) {
 					$this->terminate('Username not accepted.');
 
 					return false;
@@ -489,7 +489,7 @@ class Mailer
 				return false;
 		}
 
-		if (235 != $this->statusCode) {
+		if ($this->statusCode != 235) {
 			$this->terminate('Authentication failed.');
 
 			return false;
@@ -609,7 +609,7 @@ class Mailer
 		while ($data = @fgets($this->connection, 515)) {
 			$this->writeLog(trim($data));
 
-			if (' ' == substr($data, 3, 1)) {
+			if (substr($data, 3, 1) == ' ') {
 				break;
 			}
 		}

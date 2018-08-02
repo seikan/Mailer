@@ -441,7 +441,7 @@ class Mailer
 				return false;
 			}
 
-			if (!stream_socket_enable_crypto($this->connection, true, STREAM_CRYPTO_METHOD_TLS_CLIENT)) {
+			if (!stream_socket_enable_crypto($this->connection, true, STREAM_CRYPTO_METHOD_TLSv1_2_CLIENT)) {
 				$this->terminate('Unable to start TLS connection.');
 
 				return false;
